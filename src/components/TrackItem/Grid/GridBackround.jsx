@@ -1,15 +1,30 @@
 /* eslint-disable react/no-array-index-key */
-import React from 'react';
+import React, { useState } from 'react';
 import { Stack, Box } from '@mui/material';
+import omit from 'lodash.omit';
 
 const GridBackround = () => {
   const GRID_ROWS = 8;
   const GRID_COLS = 16;
 
-  const activeBox = ['1;2', '7;12'];
-  const activeBoxValues = {
-    '1;2': 3,
-    '7;12': 1,
+  const [activeBox, setActiveBox] = useState([]);
+  const [activeBoxValues, setActiveBoxValues] = useState({});
+
+  /**
+   *
+   * @param {string} itemId
+   */
+  const toggleActive = (itemId) => {
+    if (!activeBox.includes(itemId)) {
+      setActiveBox([...activeBox, itemId]);
+      setActiveBoxValues({
+        ...activeBoxValues,
+        [itemId]: 1,
+      });
+    } else {
+      setActiveBox(activeBox.filter((boxId) => boxId !== itemId));
+      setActiveBoxValues(omit(activeBox, itemId));
+    }
   };
 
   /**
@@ -39,6 +54,7 @@ const GridBackround = () => {
                     },
                   }}
                   key={`col-${columnIndex}`}
+                  onClick={() => toggleActive(id)}
                 >
                   {activeBox.includes(id) && idValue
                     ? (
