@@ -18,7 +18,7 @@ function App() {
   return (
     <div className="App">
       <ThemeProvider theme={theme}>
-        <Box bgcolor="primary.bg">
+        <Box bgcolor="primary.bg" display="flex" alignItems="center" justifyContent="center" height="100vh">
           <TrackGrid />
         </Box>
       </ThemeProvider>
