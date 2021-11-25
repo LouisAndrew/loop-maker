@@ -1,21 +1,15 @@
-import React, { useEffect, useState } from 'react';
+/* eslint-disable max-len */
+import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import * as Tone from 'tone';
-import { DELIMITER, NOTATION_VALUES, NOTES } from './Grid/const';
+import groupBy from 'lodash.groupby';
 
+import { DELIMITER, NOTATION_VALUES, NOTES } from './Grid/const';
 import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
 
 const TrackGrid = () => {
-  /**
-   * @type {[Tone.Synth]}
-   */
-  const [player, setPlayer] = useState(null);
   const [playDuration, setPlayDuration] = useState(0);
-
-  useEffect(() => {
-    setPlayer(new Tone.Synth().toDestination());
-  }, []);
 
   /**
    * Divide a number to its floored value (whole number division) and its rest.
@@ -48,6 +42,9 @@ const TrackGrid = () => {
     };
   };
 
+  const toSeconds = (duration) => Tone.Transport.toSeconds(duration);
+  const getTotalNoteDuration = (start, duration) => (toSeconds(start) + toSeconds(duration)) * 1000;
+
   /**
    * Function to play a grid item.
    * @param {string[]} items
@@ -58,30 +55,46 @@ const TrackGrid = () => {
       return {
         row,
         duration: createTimeObject(duration),
-        start: player.toSeconds(createTimeObject(col)),
+        start: createTimeObject(col),
       };
     });
 
-    times.forEach(({ duration, start, row }) => {
+    const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(([row, noteDatas]) => {
       const getNote = () => {
         const OCTAVES = [5, 4, 3];
         const note = NOTES[row];
         const octave = OCTAVES[Math.floor(row / 7)];
         return `${note}${note === 'C' ? octave + 1 : octave}`;
       };
-
-      player.triggerAttackRelease(getNote(), duration, `+${start}`);
+      return ({
+        note: getNote(),
+        noteDatas,
+        player: new Tone.Synth().toDestination(),
+      });
     });
 
-    if (times.length > 0) {
-      const lastNote = times[times.length - 1];
-      const totalTrackDuration = (player.toSeconds(lastNote.duration) + lastNote.start) * 1000;
+    noteEntries
+      .forEach(({ noteDatas, player, note }) => {
+        noteDatas.forEach(({ duration, start }) => {
+          player.triggerAttackRelease(
+            note,
+            duration,
+            `+${toSeconds(start)}`,
+          );
+        });
+      });
 
+    if (times.length > 0) {
+      const noteDurations = [...times].map((item) => getTotalNoteDuration(item.start, item.duration));
+      const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
       setPlayDuration(totalTrackDuration);
+
       await Tone.start();
       setTimeout(() => {
         setPlayDuration(0);
-        player.unsync();
+        noteEntries.forEach(({ player }) => {
+          player.dispose();
+        });
       }, totalTrackDuration + 500);
       Tone.Transport.cancel(totalTrackDuration / 1000);
     }

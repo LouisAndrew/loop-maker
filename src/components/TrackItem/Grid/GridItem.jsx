@@ -132,8 +132,8 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
       >
         {createArray(GRID_ROWS).map((_, rowIndex) => {
           const SHADES = ['', '_darker'];
-          const color = rowIndex % 7 === 0 ? `primary.${trackColor}_c` : `primary.${trackColor}${
-            SHADES[Math.floor(rowIndex / 7)]
+          const color = rowIndex % 8 === 0 ? `primary.${trackColor}_c` : `primary.${trackColor}${
+            SHADES[Math.floor(rowIndex / 8)]
           }`;
           return (
             <Stack
