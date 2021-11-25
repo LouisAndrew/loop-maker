@@ -121,7 +121,7 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
   return (
     <Stack padding={4}>
       <Stack direction="row" paddingBottom={2}>
-        <Button onClick={handlePlay} marginRight={1} display="block">Play</Button>
+        <Button onClick={handlePlay} display="block" sx={{ marginRight: 1 }}>Play</Button>
         <Button onClick={handleClear} variant="outlined">
           Clear
         </Button>

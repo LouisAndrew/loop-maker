@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import { DELIMITER, NOTATION_VALUES, NOTES } from './Grid/const';
 
+import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
 
 const TrackGrid = () => {
@@ -9,6 +11,7 @@ const TrackGrid = () => {
    * @type {[Tone.Synth]}
    */
   const [player, setPlayer] = useState(null);
+  const [playDuration, setPlayDuration] = useState(0);
 
   useEffect(() => {
     setPlayer(new Tone.Synth().toDestination());
@@ -70,12 +73,26 @@ const TrackGrid = () => {
       player.triggerAttackRelease(getNote(), duration, `+${start}`);
     });
 
-    console.log({ last: times[times.length - 1].start });
+    if (times.length > 0) {
+      const lastNote = times[times.length - 1];
+      const totalTrackDuration = (player.toSeconds(lastNote.duration) + lastNote.start) * 1000;
 
-    await Tone.start();
+      setPlayDuration(totalTrackDuration);
+      await Tone.start();
+      setTimeout(() => {
+        setPlayDuration(0);
+        player.unsync();
+      }, totalTrackDuration + 500);
+      Tone.Transport.cancel(totalTrackDuration / 1000);
+    }
   };
 
-  return <GridItem trackColor="yellow" onPlay={play} />;
+  return (
+    <Box position="relative">
+      <GridOverlay trackColor="yellow" playDuration={playDuration} />
+      <GridItem trackColor="yellow" onPlay={play} />
+    </Box>
+  );
 };
 
 export default TrackGrid;
