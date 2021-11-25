@@ -4,12 +4,11 @@ import { Stack, Box } from '@mui/material';
 import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
+import {
+  NOTES, DELIMITER, GRID_COLS, GRID_ROWS,
+} from './const';
 
-const GridBackround = ({ trackColor = 'yellow' }) => {
-  const DELIMITER = '__';
-  const GRID_ROWS = 8;
-  const GRID_COLS = 16;
-
+const GridItem = ({ trackColor = 'yellow' }) => {
   /**
    * Array of active box positions.
    * @example [1__2, 2__3]
@@ -106,47 +105,57 @@ const GridBackround = ({ trackColor = 'yellow' }) => {
   }, [activeBox, activeBoxValues]);
 
   return (
-    <Stack spacing={0.25} key={key}>
+    <Stack padding={4} key={key}>
       {createArray(GRID_ROWS).map((_, rowIndex) => (
-        <Stack direction="row" spacing={0.25} key={`row-${rowIndex}`}>
+        <Stack direction="row" alignItems="center" key={`row-${rowIndex}`}>
+          <Box height={30} width={50} display="flex" alignItems="center" justifyContent="center" fontWeight="bold" color={`primary.${trackColor}`}>
+            {NOTES[rowIndex]}
+          </Box>
           {createArray(GRID_COLS).map((s, columnIndex) => {
             const id = `${rowIndex}${DELIMITER}${columnIndex}`;
             const idValue = activeBoxValues[id];
+            const newGroup = (columnIndex + 1) % 4 === 0 && columnIndex !== GRID_COLS - 1;
             return (
-              <Box
-                sx={{
-                  width: 30,
-                  height: 30,
-                  backgroundColor: 'primary.dark',
-                  borderRadius: 0.5,
-                  '&:hover': {
-                    backgroundColor: 'primary.main',
-                    opacity: [0.9, 0.8, 0.7],
-                  },
-                }}
-                key={`col-${columnIndex}`}
-                onClick={() => toggleActive(id)}
-              >
-                {activeBox.includes(id) && idValue ? (
-                  <ResizableBox
-                    height={30}
-                    width={idValue * 30 + (idValue - 1) * 2}
-                    axis="x"
-                    handleSize={[10, 10]}
-                    draggableOpts={{ grid: [32] }}
-                    onResizeStop={(event, { size }) => {
-                      handleBoxResize(size.width, id);
-                    }}
-                  >
-                    <Box
-                      bgcolor={`primary.${trackColor}`}
-                      height="100%"
-                      width="100%"
-                      borderRadius={0.5}
-                    />
-                  </ResizableBox>
-                ) : null}
-              </Box>
+              <>
+                <Box
+                  width={30}
+                  height={30}
+                  borderRadius={0.5}
+                  margin={0.2}
+                  sx={{
+                    backgroundColor: 'primary.dark',
+                    '&:hover': {
+                      backgroundColor: 'primary.main',
+                      opacity: [0.9, 0.8, 0.7],
+                    },
+                  }}
+                  key={`col-${columnIndex}`}
+                  onClick={() => toggleActive(id)}
+                >
+                  {activeBox.includes(id) && idValue ? (
+                    <ResizableBox
+                      height={30}
+                      width={idValue * 30 + (idValue - 1) * 2}
+                      axis="x"
+                      handleSize={[10, 10]}
+                      draggableOpts={{ grid: [32] }}
+                      onResizeStop={(event, { size }) => {
+                        handleBoxResize(size.width, id);
+                      }}
+                    >
+                      <Box
+                        bgcolor={`primary.${trackColor}`}
+                        height="100%"
+                        width="100%"
+                        borderRadius={0.5}
+                      />
+                    </ResizableBox>
+                  ) : null}
+                </Box>
+                {newGroup && (
+                  <Box height={34} marginRight={0.5} marginLeft={0.5} width={2} bgcolor="primary.light" />
+                )}
+              </>
             );
           })}
         </Stack>
@@ -155,12 +164,12 @@ const GridBackround = ({ trackColor = 'yellow' }) => {
   );
 };
 
-GridBackround.propTypes = {
+GridItem.propTypes = {
   trackColor: PropTypes.string,
 };
 
-GridBackround.defaultProps = {
+GridItem.defaultProps = {
   trackColor: 'yellow',
 };
 
-export default GridBackround;
+export default GridItem;

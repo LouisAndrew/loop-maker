@@ -1,8 +1,8 @@
 import React from 'react';
-import GridBackround from './Grid/GridBackround';
+import GridItem from './Grid/GridItem';
 
 const TrackGrid = () => (
-  <GridBackround trackColor="yellow" />
+  <GridItem trackColor="yellow" />
 );
 
 export default TrackGrid;
