@@ -5,9 +5,13 @@ import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
 import {
-  NOTES, DELIMITER, GRID_COLS, GRID_ROWS,
+  NOTES, DELIMITER, GRID_COLS, GRID_ROWS, BASE_NOTES,
 } from './const';
 
+/**
+ * Grid item where user can clicks on the grid and assign an active note.
+ * ![documentation](https://raw.githubusercontent.com/LouisAndrew/loop-maker/docs/docs/images/GridItem.jpeg)
+ */
 const GridItem = ({ trackColor = 'yellow', onPlay }) => {
   /**
    * Array of active box positions.
@@ -23,7 +27,15 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
    */
   const [activeBoxValues, setActiveBoxValues] = useState({});
 
+  /**
+   * Key of the whole component (Used to rerender the grids).
+   * @type {[string]}
+   */
   const [key, setKey] = useState(Math.random());
+
+  /**
+   * Sets whether the component is done being rendered for the first time.
+   */
   const firstRender = useRef(true);
 
   /**
@@ -93,12 +105,18 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
     }));
   };
 
+  /**
+   * Play all of the active notes on the grid.
+   */
   const handlePlay = () => {
     onPlay(
       activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
     );
   };
 
+  /**
+   * Clear all of the active box and its values.
+   */
   const handleClear = () => {
     setActiveBox([]);
     setActiveBoxValues([]);
@@ -118,23 +136,35 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
     }
   }, [activeBox, activeBoxValues]);
 
+  const baseColor = `primary.${trackColor}`;
+  const BOX_SIZE = 25;
+
   return (
     <Stack padding={4}>
-      <Stack direction="row" paddingBottom={2}>
-        <Button onClick={handlePlay} display="block" sx={{ marginRight: 1 }}>Play</Button>
-        <Button onClick={handleClear} variant="outlined">
+      <Stack direction="row" spacing={1} paddingBottom={2}>
+        <Button
+          onClick={handlePlay}
+          sx={{
+            backgroundColor: baseColor,
+            '&:hover': { backgroundColor: baseColor },
+          }}
+        >
+          Play
+        </Button>
+        <Button
+          onClick={handleClear}
+          variant="outlined"
+          sx={{ color: baseColor, borderColor: baseColor }}
+        >
           Clear
         </Button>
       </Stack>
-      <Stack
-        spacing={0.25}
-        key={key}
-      >
+      <Stack spacing={0.25} key={key}>
         {createArray(GRID_ROWS).map((_, rowIndex) => {
           const SHADES = ['', '_darker'];
-          const color = rowIndex % 8 === 0 ? `primary.${trackColor}_c` : `primary.${trackColor}${
-            SHADES[Math.floor(rowIndex / 8)]
-          }`;
+          const color = rowIndex % BASE_NOTES.length === 0
+            ? `${baseColor}_c`
+            : `${baseColor}${SHADES[Math.floor(rowIndex / BASE_NOTES.length)]}`;
           return (
             <Stack
               width="fit-content"
@@ -154,7 +184,7 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
               }}
             >
               <Box
-                height={30}
+                height={BOX_SIZE}
                 width={50}
                 display="flex"
                 alignItems="center"
@@ -170,8 +200,8 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
                 return (
                   <React.Fragment key={`col-${columnIndex}`}>
                     <Box
-                      width={30}
-                      height={30}
+                      width={BOX_SIZE}
+                      height={BOX_SIZE}
                       borderRadius={0.5}
                       sx={{
                         backgroundColor: 'primary.dark',
@@ -184,8 +214,8 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
                     >
                       {activeBox.includes(id) && idValue ? (
                         <ResizableBox
-                          height={30}
-                          width={idValue * 30 + (idValue - 1) * 2}
+                          height={BOX_SIZE}
+                          width={idValue * BOX_SIZE + (idValue - 1) * 2}
                           axis="x"
                           handleSize={[10, 10]}
                           onResizeStop={(event, { size }) => {

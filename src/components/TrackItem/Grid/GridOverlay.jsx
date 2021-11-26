@@ -18,6 +18,10 @@ const GridOverlay = ({ playDuration, trackColor }) => {
     setProgressKey(Math.random());
   };
 
+  /**
+   * Will be called everytime the variable `playDuration` changes.
+   * What it does: Sets an interval to update the "playing audio" progress bar.
+   */
   useEffect(() => {
     let timer;
 
@@ -29,6 +33,9 @@ const GridOverlay = ({ playDuration, trackColor }) => {
       resetProgress();
     }
 
+    /**
+     * Cleanup function to clear the interval.
+     */
     return () => {
       if (timer) {
         resetProgress();
@@ -60,7 +67,6 @@ const GridOverlay = ({ playDuration, trackColor }) => {
 };
 
 GridOverlay.propTypes = {
-  // eslint-disable-next-line react/no-unused-prop-types
   trackColor: PropTypes.string,
   playDuration: PropTypes.number.isRequired,
 };

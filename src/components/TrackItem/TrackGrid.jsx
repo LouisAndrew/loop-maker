@@ -4,7 +4,9 @@ import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import groupBy from 'lodash.groupby';
 
-import { DELIMITER, NOTATION_VALUES, NOTES } from './Grid/const';
+import {
+  BASE_NOTES, DELIMITER, NOTATION_VALUES, NOTES,
+} from './Grid/const';
 import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
 
@@ -63,7 +65,7 @@ const TrackGrid = () => {
       const getNote = () => {
         const OCTAVES = [5, 4, 3];
         const note = NOTES[row];
-        const octave = OCTAVES[Math.floor(row / 7)];
+        const octave = OCTAVES[Math.floor(row / (BASE_NOTES.length - 1))];
         return `${note}${note === 'C' ? octave + 1 : octave}`;
       };
       return ({
@@ -76,6 +78,11 @@ const TrackGrid = () => {
     noteEntries
       .forEach(({ noteDatas, player, note }) => {
         noteDatas.forEach(({ duration, start }) => {
+          /**
+           * Trigger attack release (attack: press on a note, release: release the note) for every
+           * note datas for the duration of `duration` and starting at `start` (in seconds) after the
+           * current time.
+           */
           player.triggerAttackRelease(
             note,
             duration,
@@ -85,8 +92,13 @@ const TrackGrid = () => {
       });
 
     if (times.length > 0) {
+      /**
+       * Gets the total duration of a track.
+       * Retrieve the last note of the current track, then sum its start time and its duration.
+       */
       const noteDurations = [...times].map((item) => getTotalNoteDuration(item.start, item.duration));
       const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
+
       setPlayDuration(totalTrackDuration);
 
       await Tone.start();
