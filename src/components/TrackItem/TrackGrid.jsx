@@ -4,7 +4,9 @@ import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import groupBy from 'lodash.groupby';
 
-import { DELIMITER, NOTATION_VALUES, NOTES } from './Grid/const';
+import {
+  BASE_NOTES, DELIMITER, NOTATION_VALUES, NOTES,
+} from './Grid/const';
 import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
 
@@ -63,7 +65,7 @@ const TrackGrid = () => {
       const getNote = () => {
         const OCTAVES = [5, 4, 3];
         const note = NOTES[row];
-        const octave = OCTAVES[Math.floor(row / 7)];
+        const octave = OCTAVES[Math.floor(row / (BASE_NOTES.length - 1))];
         return `${note}${note === 'C' ? octave + 1 : octave}`;
       };
       return ({
