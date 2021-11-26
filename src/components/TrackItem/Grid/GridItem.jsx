@@ -10,7 +10,7 @@ import {
 
 /**
  * Grid item where user can clicks on the grid and assign an active note.
- * ![documentation](./docs/GridItem.jpeg)
+ * ![documentation](https://raw.githubusercontent.com/LouisAndrew/loop-maker/docs/docs/images/GridItem.jpeg)
  */
 const GridItem = ({ trackColor = 'yellow', onPlay }) => {
   /**
