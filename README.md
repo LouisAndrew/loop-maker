@@ -6,6 +6,7 @@
   - [Usage](#usage)
   - [Idea](#idea)
   - [Implementation Details](#implementation-details)
+  - [Samples](#samples)
 ## Usage
 Prerequisites
 - NPM and node is installed ([installing node](https://nodejs.dev/learn/how-to-install-nodejs))
@@ -28,4 +29,7 @@ There's also a possibility of customisation on the *[time signatures](https://ww
 
 ## Implementation Details
 
-The engine behind the app would be `[Tone.js](https://www.notion.so/AVT-Project-README-b1e080ebe8334461b8d602feabca0d89)`, which provides everything that are needed for the project (playing a tone on a specific note, timing of the note, etc). The application is built on top of `[React](https://reactjs.org/)` framework. For the design work, we use Figma to help us visualise the end result of the project before implementing it (**Figma Link:** [https://www.figma.com/file/jLdyD7890HfHJuNuXDbcTl/AVT?node-id=0%3A](https://www.figma.com/file/jLdyD7890HfHJuNuXDbcTl/AVT?node-id=0%3A1))
+The engine behind the app would be `[Tone.js](https://www.notion.so/AVT-Project-README-b1e080ebe8334461b8d602feabca0d89)`, which provides everything that are needed for the project (playing a tone on a specific note, timing of the note, etc). The application is built on top of `[React](https://reactjs.org/)` framework. For the design work, we use Figma to help us visualise the end result of the project before implementing it (**Figma Link:** [https://www.figma.com/file/jLdyD7890HfHJuNuXDbcTl/AVT?node-id=0%3A](https://www.figma.com/file/jLdyD7890HfHJuNuXDbcTl/AVT?node-id=0%3A1))\
+
+## Samples
+All of the samples are taken from this [repository](https://github.com/nbrosowsky/tonejs-instruments).
