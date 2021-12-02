@@ -1,14 +1,12 @@
 /* eslint-disable max-len */
-import React, { useState } from 'react';
-import { Box } from '@mui/material';
-import * as Tone from 'tone';
-import groupBy from 'lodash.groupby';
+import React, { useState } from "react";
+import { Box } from "@mui/material";
+import * as Tone from "tone";
+import groupBy from "lodash.groupby";
 
-import {
-  BASE_NOTES, DELIMITER, NOTATION_VALUES, NOTES,
-} from './Grid/const';
-import GridOverlay from './Grid/GridOverlay';
-import GridItem from './Grid/GridItem';
+import { BASE_NOTES, DELIMITER, NOTATION_VALUES, NOTES } from "./Grid/const";
+import GridOverlay from "./Grid/GridOverlay";
+import GridItem from "./Grid/GridItem";
 
 const TrackGrid = () => {
   const [playDuration, setPlayDuration] = useState(0);
@@ -28,24 +26,25 @@ const TrackGrid = () => {
    */
   const createTimeObject = (duration) => {
     // note: Assuming that every grid unit -> 8n or 1/8 note
-    const [nValue, nRest] = divide(duration, NOTATION_VALUES['1n']);
-    const [halfNValue, halfNRest] = divide(nRest, NOTATION_VALUES['2n']);
+    const [nValue, nRest] = divide(duration, NOTATION_VALUES["1n"]);
+    const [halfNValue, halfNRest] = divide(nRest, NOTATION_VALUES["2n"]);
     const [quarterNValue, quarterNRest] = divide(
       halfNRest,
-      NOTATION_VALUES['4n'],
+      NOTATION_VALUES["4n"]
     );
-    const [eighthNValue] = divide(quarterNRest, NOTATION_VALUES['8n']);
+    const [eighthNValue] = divide(quarterNRest, NOTATION_VALUES["8n"]);
 
     return {
-      '1n': nValue,
-      '2n': halfNValue,
-      '4n': quarterNValue,
-      '8n': eighthNValue,
+      "1n": nValue,
+      "2n": halfNValue,
+      "4n": quarterNValue,
+      "8n": eighthNValue,
     };
   };
 
   const toSeconds = (duration) => Tone.Transport.toSeconds(duration);
-  const getTotalNoteDuration = (start, duration) => (toSeconds(start) + toSeconds(duration)) * 1000;
+  const getTotalNoteDuration = (start, duration) =>
+    (toSeconds(start) + toSeconds(duration)) * 1000;
 
   /**
    * Function to play a grid item.
@@ -61,54 +60,61 @@ const TrackGrid = () => {
       };
     });
 
-    const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(([row, noteDatas]) => {
-      const getNote = () => {
-        const OCTAVES = [5, 4, 3];
-        const note = NOTES[row];
-        const octave = OCTAVES[Math.floor(row / (BASE_NOTES.length - 1))];
-        return `${note}${note === 'C' ? octave + 1 : octave}`;
-      };
-      return ({
-        note: getNote(),
-        noteDatas,
-        player: new Tone.Synth().toDestination(),
-      });
-    });
+    const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(
+      ([row, noteDatas]) => {
+        const getNote = () => {
+          const OCTAVES = [5, 4, 3];
+          const note = NOTES[row];
+          const octave = OCTAVES[Math.floor(row / (BASE_NOTES.length - 1))];
+          return `${note}${note === "C" ? octave + 1 : octave}`;
+        };
 
-    noteEntries
-      .forEach(({ noteDatas, player, note }) => {
-        noteDatas.forEach(({ duration, start }) => {
-          /**
-           * Trigger attack release (attack: press on a note, release: release the note) for every
-           * note datas for the duration of `duration` and starting at `start` (in seconds) after the
-           * current time.
-           */
-          player.triggerAttackRelease(
-            note,
-            duration,
-            `+${toSeconds(start)}`,
-          );
-        });
-      });
+        return {
+          note: getNote(),
+          noteDatas,
+        };
+      }
+    );
 
+    // TODO: Add select to select multiple instrument
+    const instrument = 'piano'
     if (times.length > 0) {
-      /**
-       * Gets the total duration of a track.
-       * Retrieve the last note of the current track, then sum its start time and its duration.
-       */
-      const noteDurations = [...times].map((item) => getTotalNoteDuration(item.start, item.duration));
-      const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
+      const player = new Tone.Sampler({
+        urls: noteEntries.reduce(
+          (a, b) => ({ ...a, [b.note]: b.note.replace("#", "s") + ".ogg" }),
+          {}
+        ),
+        baseUrl: `https://louisandrew.github.io/loop-maker/samples/${instrument}/`,
+        onload: async () => {
+          /**
+           * Gets the total duration of a track.
+           * Retrieve the last note of the current track, then sum its start time and its duration.
+           */
+          const noteDurations = [...times].map((item) =>
+            getTotalNoteDuration(item.start, item.duration)
+          );
+          const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
 
-      setPlayDuration(totalTrackDuration);
+          setPlayDuration(totalTrackDuration);
 
-      await Tone.start();
-      setTimeout(() => {
-        setPlayDuration(0);
-        noteEntries.forEach(({ player }) => {
-          player.dispose();
-        });
-      }, totalTrackDuration + 500);
-      Tone.Transport.cancel(totalTrackDuration / 1000);
+          setTimeout(() => {
+            setPlayDuration(0);
+            player.dispose();
+          }, totalTrackDuration + 500);
+          Tone.Transport.cancel(totalTrackDuration / 1000);
+
+          await Tone.start();
+          noteEntries.forEach(({ note, noteDatas }) => {
+            noteDatas.forEach(({ duration, start }) => {
+              player.triggerAttackRelease(
+                note,
+                duration,
+                `+${toSeconds(start)}`
+              );
+            });
+          });
+        },
+      }).toDestination();
     }
   };
 
