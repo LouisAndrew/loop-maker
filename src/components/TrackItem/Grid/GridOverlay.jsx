@@ -27,7 +27,7 @@ const GridOverlay = ({ playDuration, trackColor }) => {
 
     if (playDuration > 0) {
       timer = setInterval(() => {
-        setProgress((prev) => (prev === 100 ? prev : (prev + 1)));
+        setProgress((prev) => (prev === 100 ? prev : prev + 1));
       }, playDuration / 100);
     } else {
       resetProgress();
@@ -47,20 +47,30 @@ const GridOverlay = ({ playDuration, trackColor }) => {
   return isActive ? (
     <Box
       position="absolute"
-      height="100%"
-      width="100%"
       bgcolor="rgba(0, 0, 0, 0.1)"
       display="flex"
       flexDirection="column"
       alignItems="center"
       justifyContent="center"
-      sx={{ backdropFilter: 'blur(1px)', zIndex: 99 }}
+      sx={{
+        backdropFilter: 'blur(1px)',
+        zIndex: 99,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
     >
       <Box color="#fff" fontWeight="bold" fontSize="32px">
         PLAYING AUDIO
       </Box>
       <Box width="20vw" color={`primary.${trackColor}`} sx={{ marginTop: 3 }}>
-        <LinearProgress key={progressKey} color="inherit" variant="determinate" value={progress} />
+        <LinearProgress
+          key={progressKey}
+          color="inherit"
+          variant="determinate"
+          value={progress}
+        />
       </Box>
     </Box>
   ) : null;

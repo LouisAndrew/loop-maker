@@ -1,11 +1,13 @@
 /* eslint-disable react/no-array-index-key */
 import React, { useEffect, useRef, useState } from 'react';
-import { Stack, Box, Button } from '@mui/material';
+import {
+  Stack, Box, Button, FormControl, InputLabel, Select, MenuItem,
+} from '@mui/material';
 import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
 import {
-  NOTES, DELIMITER, GRID_COLS, GRID_ROWS, BASE_NOTES,
+  NOTES, DELIMITER, GRID_COLS, GRID_ROWS, BASE_NOTES, INSTRUMENTS,
 } from './const';
 
 /**
@@ -32,6 +34,8 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
    * @type {[string]}
    */
   const [key, setKey] = useState(Math.random());
+
+  const [instrument, setInstrument] = useState('piano');
 
   /**
    * Sets whether the component is done being rendered for the first time.
@@ -111,6 +115,7 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
   const handlePlay = () => {
     onPlay(
       activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
+      instrument,
     );
   };
 
@@ -137,11 +142,13 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
   }, [activeBox, activeBoxValues]);
 
   const baseColor = `primary.${trackColor}`;
-  const BOX_SIZE = 25;
+  const BOX_SIZE = 24;
+
+  // const instrumentNotes = (INSTRUMENT_NOTES[instrument]);
 
   return (
     <Stack padding={4}>
-      <Stack direction="row" spacing={1} paddingBottom={2}>
+      <Stack direction="row" alignItems="flex-end" spacing={1} paddingBottom={2}>
         <Button
           onClick={handlePlay}
           sx={{
@@ -158,6 +165,28 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
         >
           Clear
         </Button>
+        <Box sx={{ width: 64 }}>
+          <FormControl size="small" sx={{ minWidth: 80 }}>
+            <InputLabel id="instrument" sx={{ color: baseColor }}>Instrument</InputLabel>
+            <Select
+              labelId="instrument"
+              id="instrument-input"
+              value={instrument}
+              defaultValue="piano"
+              label="Instrument"
+              autoWidth
+              variant="filled"
+              onChange={(e) => setInstrument(e.target.value)}
+              sx={{ color: baseColor }}
+            >
+              {INSTRUMENTS.map((instrumentData) => (
+                <MenuItem value={instrumentData} key={instrumentData}>
+                  {instrumentData}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Box>
       </Stack>
       <Stack spacing={0.25} key={key}>
         {createArray(GRID_ROWS).map((_, rowIndex) => {
