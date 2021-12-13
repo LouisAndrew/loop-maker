@@ -38,7 +38,6 @@ const GridItem = ({
   } = useTracks();
 
   const activeBox = useMemo(() => activeBoxes[trackNumber], [activeBoxes]);
-  console.log(activeBox);
   const activeBoxValues = useMemo(() => activeBoxesValues[trackNumber], [activeBoxesValues]);
   const instrument = useMemo(() => instruments[trackNumber], [instruments]);
 
@@ -46,6 +45,18 @@ const GridItem = ({
     () => getSetter(trackNumber),
     [trackNumber],
   );
+
+  const [gridLength, setGridLength] = useState(40);
+
+  function handleGridSize(event) {
+    setGridLength(event.target.value);
+  }
+
+  const [tempo, setTempo] = useState(120);
+
+  function handleTempo(event) {
+    setTempo(event.target.value);
+  }
 
   /**
    * Key of the whole component (Used to rerender the grids).
@@ -140,6 +151,7 @@ const GridItem = ({
     onPlay(
       activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
       instrument,
+      tempo,
     );
   };
 
@@ -215,6 +227,8 @@ const GridItem = ({
           >
             Clear
           </Button>
+          <input type="number" defaultValue={gridLength} onChange={handleGridSize} />
+          <input type="number" defaultValue={tempo} onChange={handleTempo} />
           <Box sx={{ width: 64 }}>
             <FormControl size="small" sx={{ minWidth: 80 }}>
               <InputLabel id="instrument" sx={{ color }}>
@@ -240,79 +254,79 @@ const GridItem = ({
             </FormControl>
           </Box>
         </Stack>
-      </Stack>
-      <Stack spacing={0.25} key={key}>
-        {instrumentNotes.map((note, rowIndex) => (
-          <Stack
-            width="fit-content"
-            spacing={0.25}
-            direction="row"
-            alignItems="center"
-            key={`row-${rowIndex}`}
-            sx={{
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderColor: 'transparent',
-              borderRadius: 0.5,
-              '&:hover': {
-                borderColor: color,
-                transition: '200ms',
-              },
-            }}
-          >
-            <Box
-              height={BOX_SIZE}
-              width={50}
-              display="flex"
+        <Stack spacing={0.25} key={key}>
+          {instrumentNotes.map((note, rowIndex) => (
+            <Stack
+              width="fit-content"
+              spacing={0.25}
+              direction="row"
               alignItems="center"
-              justifyContent="center"
-              fontWeight="bold"
-              color={color}
+              key={`row-${rowIndex}`}
+              sx={{
+                borderWidth: 1,
+                borderStyle: 'solid',
+                borderColor: 'transparent',
+                borderRadius: 0.5,
+                '&:hover': {
+                  borderColor: color,
+                  transition: '200ms',
+                },
+              }}
             >
-              {note.replace('s', '#')}
-            </Box>
-            {createArray(GRID_COLS).map((s, columnIndex) => {
-              const id = `${rowIndex}${DELIMITER}${columnIndex}`;
-              const idValue = activeBoxValues[id];
-              return (
-                <React.Fragment key={`col-${columnIndex}`}>
-                  <Box
-                    width={BOX_SIZE}
-                    height={BOX_SIZE}
-                    borderRadius={0.5}
-                    sx={{
-                      backgroundColor: 'primary.dark',
-                      '&:hover': {
-                        backgroundColor: 'primary.main',
-                        opacity: [0.9, 0.8, 0.7],
-                      },
-                    }}
-                    onClick={() => toggleActive(id)}
-                  >
-                    {activeBox.includes(id) && idValue ? (
-                      <ResizableBox
-                        height={BOX_SIZE}
-                        width={idValue * BOX_SIZE + (idValue - 1) * 2}
-                        axis="x"
-                        handleSize={[10, 10]}
-                        onResizeStop={(event, { size }) => {
-                          handleBoxResize(size.width, id);
-                        }}
-                      >
-                        <Box
-                          bgcolor={color}
-                          height="100%"
-                          width="100%"
-                          borderRadius={0.5}
-                        />
-                      </ResizableBox>
-                    ) : null}
-                  </Box>
-                </React.Fragment>
-              );
-            })}
-          </Stack>
-        ))}
+              <Box
+                height={BOX_SIZE}
+                width={50}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                fontWeight="bold"
+                color={color}
+              >
+                {note.replace('s', '#')}
+              </Box>
+              {createArray(GRID_COLS).map((s, columnIndex) => {
+                const id = `${rowIndex}${DELIMITER}${columnIndex}`;
+                const idValue = activeBoxValues[id];
+                return (
+                  <React.Fragment key={`col-${columnIndex}`}>
+                    <Box
+                      width={BOX_SIZE}
+                      height={BOX_SIZE}
+                      borderRadius={0.5}
+                      sx={{
+                        backgroundColor: 'primary.dark',
+                        '&:hover': {
+                          backgroundColor: 'primary.main',
+                          opacity: [0.9, 0.8, 0.7],
+                        },
+                      }}
+                      onClick={() => toggleActive(id)}
+                    >
+                      {activeBox.includes(id) && idValue ? (
+                        <ResizableBox
+                          height={BOX_SIZE}
+                          width={idValue * BOX_SIZE + (idValue - 1) * 2}
+                          axis="x"
+                          handleSize={[10, 10]}
+                          onResizeStop={(event, { size }) => {
+                            handleBoxResize(size.width, id);
+                          }}
+                        >
+                          <Box
+                            bgcolor={color}
+                            height="100%"
+                            width="100%"
+                            borderRadius={0.5}
+                          />
+                        </ResizableBox>
+                      ) : null}
+                    </Box>
+                  </React.Fragment>
+                );
+              })}
+            </Stack>
+          ))}
+        </Stack>
       </Stack>
     </Stack>
   );
