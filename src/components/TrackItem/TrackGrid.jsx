@@ -1,10 +1,11 @@
+/* eslint-disable prefer-template */
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import groupBy from 'lodash.groupby';
 
 import {
-  BASE_NOTES, DELIMITER, NOTATION_VALUES, NOTES,
+  DELIMITER, INSTRUMENT_NOTES, NOTATION_VALUES,
 } from './Grid/const';
 import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
@@ -62,12 +63,11 @@ const TrackGrid = () => {
 
     const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(
       ([row, noteDatas]) => {
-        const getNote = () => {
-          const OCTAVES = [5, 4, 3];
-          const note = NOTES[row];
-          const octave = OCTAVES[Math.floor(row / (BASE_NOTES.length - 1))];
-          return `${note}${note === 'C' ? octave + 1 : octave}`;
-        };
+        /**
+         *
+         * @returns {string}
+         */
+        const getNote = () => INSTRUMENT_NOTES[instrument][row];
 
         return {
           note: getNote(),
@@ -77,11 +77,13 @@ const TrackGrid = () => {
     );
 
     if (times.length > 0) {
+      const urls = noteEntries.reduce(
+        (a, b) => ({ ...a, [b.note.replace('s', '#').toString()]: b.note + '.mp3' }),
+        {},
+      );
+
       const player = new Tone.Sampler({
-        urls: noteEntries.reduce(
-          (a, b) => ({ ...a, [b.note]: b.note.replace('#', 's') + '.ogg' }),
-          {},
-        ),
+        urls,
         baseUrl: 'https://louisandrew.github.io/loop-maker/samples/' + instrument + '/',
         onload: async () => {
           /**
@@ -105,7 +107,7 @@ const TrackGrid = () => {
           noteEntries.forEach(({ note, noteDatas }) => {
             noteDatas.forEach(({ duration, start }) => {
               player.triggerAttackRelease(
-                note,
+                note.replace('s', '#'),
                 duration,
                 '+' + toSeconds(start),
               );
