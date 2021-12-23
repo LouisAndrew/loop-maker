@@ -1,18 +1,32 @@
 /* eslint-disable react/no-array-index-key */
-import React, { useEffect, useRef, useState } from 'react';
-import { Stack, Box, Button } from '@mui/material';
+import React, {
+  useEffect, useRef, useState, useMemo,
+} from 'react';
+import {
+  Stack,
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+} from '@mui/material';
 import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
 import {
-  NOTES, DELIMITER, GRID_COLS, GRID_ROWS, BASE_NOTES,
+  DELIMITER,
+  GRID_COLS,
+  INSTRUMENTS,
+  INSTRUMENT_NOTES,
 } from './const';
 
 /**
  * Grid item where user can clicks on the grid and assign an active note.
  * ![documentation](https://raw.githubusercontent.com/LouisAndrew/loop-maker/docs/docs/images/GridItem.jpeg)
  */
-const GridItem = ({ trackColor = 'yellow', onPlay }) => {
+const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
   /**
    * Array of active box positions.
    * @example [1__2, 2__3]
@@ -32,6 +46,20 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
    * @type {[string]}
    */
   const [key, setKey] = useState(Math.random());
+
+  /**
+   * Name of the instrument currently active.
+   * @type {[string]}
+   */
+  const [instrument, setInstrument] = useState('piano');
+
+  /**
+   * @type {string[]}
+   */
+  const instrumentNotes = useMemo(
+    () => INSTRUMENT_NOTES[instrument],
+    [instrument],
+  );
 
   /**
    * Sets whether the component is done being rendered for the first time.
@@ -111,6 +139,7 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
   const handlePlay = () => {
     onPlay(
       activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
+      instrument,
     );
   };
 
@@ -136,107 +165,143 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
     }
   }, [activeBox, activeBoxValues]);
 
-  const baseColor = `primary.${trackColor}`;
-  const BOX_SIZE = 25;
+  useEffect(() => {
+    if (!firstRender.current) {
+      setActiveBox((prev) => prev.filter((box) => {
+        const rowIndex = box.split(DELIMITER)[0];
+        return instrumentNotes.length > parseInt(rowIndex, 10);
+      }));
+    }
+  }, [instrumentNotes]);
+
+  const color = `primary.${trackColor}`;
+  const BOX_SIZE = 24;
 
   return (
     <Stack padding={4}>
-      <Stack direction="row" spacing={1} paddingBottom={2}>
-        <Button
-          onClick={handlePlay}
-          sx={{
-            backgroundColor: baseColor,
-            '&:hover': { backgroundColor: baseColor },
-          }}
+      <Stack direction="row" alignItems="flex-end" justifyContent="space-between" paddingBottom={2} paddingLeft="54px" paddingRight="27px">
+        <Typography color={color} variant="h5" fontWeight="bold">
+          {trackName}
+        </Typography>
+        <Stack
+          direction="row"
+          alignItems="flex-end"
+          spacing={1}
         >
-          Play
-        </Button>
-        <Button
-          onClick={handleClear}
-          variant="outlined"
-          sx={{ color: baseColor, borderColor: baseColor }}
-        >
-          Clear
-        </Button>
+          <Button
+            onClick={handlePlay}
+            sx={{
+              backgroundColor: color,
+              '&:hover': { backgroundColor: color },
+            }}
+          >
+            Play
+          </Button>
+          <Button
+            onClick={handleClear}
+            variant="outlined"
+            sx={{ color, borderColor: color }}
+          >
+            Clear
+          </Button>
+          <Box sx={{ width: 64 }}>
+            <FormControl size="small" sx={{ minWidth: 80 }}>
+              <InputLabel id="instrument" sx={{ color }}>
+                Instrument
+              </InputLabel>
+              <Select
+                labelId="instrument"
+                id="instrument-input"
+                value={instrument}
+                defaultValue="piano"
+                label="Instrument"
+                autoWidth
+                variant="filled"
+                onChange={(e) => setInstrument(e.target.value)}
+                sx={{ color }}
+              >
+                {INSTRUMENTS.map((instrumentData) => (
+                  <MenuItem value={instrumentData} key={instrumentData}>
+                    {instrumentData}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        </Stack>
       </Stack>
       <Stack spacing={0.25} key={key}>
-        {createArray(GRID_ROWS).map((_, rowIndex) => {
-          const SHADES = ['', '_darker'];
-          const color = rowIndex % BASE_NOTES.length === 0
-            ? `${baseColor}_c`
-            : `${baseColor}${SHADES[Math.floor(rowIndex / BASE_NOTES.length)]}`;
-          return (
-            <Stack
-              width="fit-content"
-              spacing={0.25}
-              direction="row"
+        {instrumentNotes.map((note, rowIndex) => (
+          <Stack
+            width="fit-content"
+            spacing={0.25}
+            direction="row"
+            alignItems="center"
+            key={`row-${rowIndex}`}
+            sx={{
+              borderWidth: 1,
+              borderStyle: 'solid',
+              borderColor: 'transparent',
+              borderRadius: 0.5,
+              '&:hover': {
+                borderColor: color,
+                transition: '200ms',
+              },
+            }}
+          >
+            <Box
+              height={BOX_SIZE}
+              width={50}
+              display="flex"
               alignItems="center"
-              key={`row-${rowIndex}`}
-              sx={{
-                borderWidth: 1,
-                borderStyle: 'solid',
-                borderColor: 'transparent',
-                borderRadius: 0.5,
-                '&:hover': {
-                  borderColor: color,
-                  transition: '200ms',
-                },
-              }}
+              justifyContent="center"
+              fontWeight="bold"
+              color={color}
             >
-              <Box
-                height={BOX_SIZE}
-                width={50}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-                fontWeight="bold"
-                color={color}
-              >
-                {NOTES[rowIndex]}
-              </Box>
-              {createArray(GRID_COLS).map((s, columnIndex) => {
-                const id = `${rowIndex}${DELIMITER}${columnIndex}`;
-                const idValue = activeBoxValues[id];
-                return (
-                  <React.Fragment key={`col-${columnIndex}`}>
-                    <Box
-                      width={BOX_SIZE}
-                      height={BOX_SIZE}
-                      borderRadius={0.5}
-                      sx={{
-                        backgroundColor: 'primary.dark',
-                        '&:hover': {
-                          backgroundColor: 'primary.main',
-                          opacity: [0.9, 0.8, 0.7],
-                        },
-                      }}
-                      onClick={() => toggleActive(id)}
-                    >
-                      {activeBox.includes(id) && idValue ? (
-                        <ResizableBox
-                          height={BOX_SIZE}
-                          width={idValue * BOX_SIZE + (idValue - 1) * 2}
-                          axis="x"
-                          handleSize={[10, 10]}
-                          onResizeStop={(event, { size }) => {
-                            handleBoxResize(size.width, id);
-                          }}
-                        >
-                          <Box
-                            bgcolor={color}
-                            height="100%"
-                            width="100%"
-                            borderRadius={0.5}
-                          />
-                        </ResizableBox>
-                      ) : null}
-                    </Box>
-                  </React.Fragment>
-                );
-              })}
-            </Stack>
-          );
-        })}
+              {note.replace('s', '#')}
+            </Box>
+            {createArray(GRID_COLS).map((s, columnIndex) => {
+              const id = `${rowIndex}${DELIMITER}${columnIndex}`;
+              const idValue = activeBoxValues[id];
+              return (
+                <React.Fragment key={`col-${columnIndex}`}>
+                  <Box
+                    width={BOX_SIZE}
+                    height={BOX_SIZE}
+                    borderRadius={0.5}
+                    sx={{
+                      backgroundColor: 'primary.dark',
+                      '&:hover': {
+                        backgroundColor: 'primary.main',
+                        opacity: [0.9, 0.8, 0.7],
+                      },
+                    }}
+                    onClick={() => toggleActive(id)}
+                  >
+                    {activeBox.includes(id) && idValue ? (
+                      <ResizableBox
+                        height={BOX_SIZE}
+                        width={idValue * BOX_SIZE + (idValue - 1) * 2}
+                        axis="x"
+                        handleSize={[10, 10]}
+                        onResizeStop={(event, { size }) => {
+                          handleBoxResize(size.width, id);
+                        }}
+                      >
+                        <Box
+                          bgcolor={color}
+                          height="100%"
+                          width="100%"
+                          borderRadius={0.5}
+                        />
+                      </ResizableBox>
+                    ) : null}
+                  </Box>
+                </React.Fragment>
+              );
+            })}
+          </Stack>
+        ))}
       </Stack>
     </Stack>
   );
@@ -245,10 +310,12 @@ const GridItem = ({ trackColor = 'yellow', onPlay }) => {
 GridItem.propTypes = {
   trackColor: PropTypes.string,
   onPlay: PropTypes.func.isRequired,
+  trackName: PropTypes.string,
 };
 
 GridItem.defaultProps = {
   trackColor: 'yellow',
+  trackName: 'Track 1',
 };
 
 export default GridItem;

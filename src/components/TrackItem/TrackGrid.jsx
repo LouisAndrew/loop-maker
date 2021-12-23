@@ -1,11 +1,11 @@
-/* eslint-disable max-len */
+/* eslint-disable prefer-template */
 import React, { useState } from 'react';
 import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import groupBy from 'lodash.groupby';
 
 import {
-  BASE_NOTES, DELIMITER, NOTATION_VALUES, NOTES,
+  DELIMITER, INSTRUMENT_NOTES, NOTATION_VALUES,
 } from './Grid/const';
 import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
@@ -51,7 +51,7 @@ const TrackGrid = () => {
    * Function to play a grid item.
    * @param {string[]} items
    */
-  const play = async (items) => {
+  const play = async (items, instrument) => {
     const times = items.map((item) => {
       const [row, col, duration] = item.split(DELIMITER);
       return {
@@ -61,59 +61,65 @@ const TrackGrid = () => {
       };
     });
 
-    const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(([row, noteDatas]) => {
-      const getNote = () => {
-        const OCTAVES = [5, 4, 3];
-        const note = NOTES[row];
-        const octave = OCTAVES[Math.floor(row / (BASE_NOTES.length - 1))];
-        return `${note}${note === 'C' ? octave + 1 : octave}`;
-      };
-      return ({
-        note: getNote(),
-        noteDatas,
-        player: new Tone.Synth().toDestination(),
-      });
-    });
+    const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(
+      ([row, noteDatas]) => {
+        /**
+         *
+         * @returns {string}
+         */
+        const getNote = () => INSTRUMENT_NOTES[instrument][row];
 
-    noteEntries
-      .forEach(({ noteDatas, player, note }) => {
-        noteDatas.forEach(({ duration, start }) => {
-          /**
-           * Trigger attack release (attack: press on a note, release: release the note) for every
-           * note datas for the duration of `duration` and starting at `start` (in seconds) after the
-           * current time.
-           */
-          player.triggerAttackRelease(
-            note,
-            duration,
-            `+${toSeconds(start)}`,
-          );
-        });
-      });
+        return {
+          note: getNote(),
+          noteDatas,
+        };
+      },
+    );
 
     if (times.length > 0) {
-      /**
-       * Gets the total duration of a track.
-       * Retrieve the last note of the current track, then sum its start time and its duration.
-       */
-      const noteDurations = [...times].map((item) => getTotalNoteDuration(item.start, item.duration));
-      const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
+      const urls = noteEntries.reduce(
+        (a, b) => ({ ...a, [b.note.replace('s', '#').toString()]: b.note + '.mp3' }),
+        {},
+      );
 
-      setPlayDuration(totalTrackDuration);
+      const player = new Tone.Sampler({
+        urls,
+        baseUrl: 'https://louisandrew.github.io/loop-maker/samples/' + instrument + '/',
+        onload: async () => {
+          /**
+           * Gets the total duration of a track.
+           * Retrieve the last note of the current track, then sum its start time and its duration.
+           */
+          const noteDurations = [...times].map(
+            (item) => getTotalNoteDuration(item.start, item.duration),
+          );
+          const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
 
-      await Tone.start();
-      setTimeout(() => {
-        setPlayDuration(0);
-        noteEntries.forEach(({ player }) => {
-          player.dispose();
-        });
-      }, totalTrackDuration + 500);
-      Tone.Transport.cancel(totalTrackDuration / 1000);
+          setPlayDuration(totalTrackDuration);
+
+          setTimeout(() => {
+            setPlayDuration(0);
+            player.dispose();
+          }, totalTrackDuration + 500);
+          Tone.Transport.cancel(totalTrackDuration / 1000);
+
+          await Tone.start();
+          noteEntries.forEach(({ note, noteDatas }) => {
+            noteDatas.forEach(({ duration, start }) => {
+              player.triggerAttackRelease(
+                note.replace('s', '#'),
+                duration,
+                '+' + toSeconds(start),
+              );
+            });
+          });
+        },
+      }).toDestination();
     }
   };
 
   return (
-    <Box position="relative">
+    <Box>
       <GridOverlay trackColor="yellow" playDuration={playDuration} />
       <GridItem trackColor="yellow" onPlay={play} />
     </Box>
