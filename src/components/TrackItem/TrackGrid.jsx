@@ -4,14 +4,17 @@ import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import groupBy from 'lodash.groupby';
 
+import PropTypes from 'prop-types';
 import {
   DELIMITER, INSTRUMENT_NOTES, NOTATION_VALUES,
 } from './Grid/const';
 import GridOverlay from './Grid/GridOverlay';
 import GridItem from './Grid/GridItem';
+import { TRACK_COLORS } from '../../const';
 
-const TrackGrid = () => {
+const TrackGrid = ({ trackNumber }) => {
   const [playDuration, setPlayDuration] = useState(0);
+  const trackColor = TRACK_COLORS[trackNumber];
 
   /**
    * Divide a number to its floored value (whole number division) and its rest.
@@ -120,10 +123,14 @@ const TrackGrid = () => {
 
   return (
     <Box>
-      <GridOverlay trackColor="yellow" playDuration={playDuration} />
-      <GridItem trackColor="yellow" onPlay={play} />
+      <GridOverlay trackColor={trackColor} playDuration={playDuration} />
+      <GridItem trackColor={trackColor} trackName={'Track ' + trackNumber} onPlay={play} />
     </Box>
   );
+};
+
+TrackGrid.propTypes = {
+  trackNumber: PropTypes.number.isRequired,
 };
 
 export default TrackGrid;
