@@ -11,47 +11,47 @@ import {
   Select,
   MenuItem,
   Typography,
+  IconButton,
 } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Link } from 'react-router-dom';
 import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
 import {
-  DELIMITER,
-  GRID_COLS,
-  INSTRUMENTS,
-  INSTRUMENT_NOTES,
+  DELIMITER, GRID_COLS, INSTRUMENTS, INSTRUMENT_NOTES,
 } from './const';
+import { useTracks } from '../../../hooks/useTracks';
 
 /**
  * Grid item where user can clicks on the grid and assign an active note.
  * ![documentation](https://raw.githubusercontent.com/LouisAndrew/loop-maker/docs/docs/images/GridItem.jpeg)
  */
-const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
-  /**
-   * Array of active box positions.
-   * @example [1__2, 2__3]
-   * @type {[String[], | React.SetStateAction]}
-   */
-  const [activeBox, setActiveBox] = useState([]);
+const GridItem = ({
+  trackColor = 'yellow',
+  onPlay,
+  trackName = 'Track 1',
+  trackNumber,
+}) => {
+  const {
+    getSetter, activeBoxes, activeBoxesValues, instruments,
+  } = useTracks();
 
-  /**
-   * Array of the values (length in number of grids taken) of the active box.
-   * @example { '1__2': 1, '2__3': 2 }
-   * @type {[{[key: string]: number}, React.SetStateAction]}
-   */
-  const [activeBoxValues, setActiveBoxValues] = useState({});
+  const activeBox = useMemo(() => activeBoxes[trackNumber], [activeBoxes]);
+  console.log(activeBox);
+  const activeBoxValues = useMemo(() => activeBoxesValues[trackNumber], [activeBoxesValues]);
+  const instrument = useMemo(() => instruments[trackNumber], [instruments]);
+
+  const { setActiveBox, setActiveBoxValues, setInstrument } = useMemo(
+    () => getSetter(trackNumber),
+    [trackNumber],
+  );
 
   /**
    * Key of the whole component (Used to rerender the grids).
    * @type {[string]}
    */
   const [key, setKey] = useState(Math.random());
-
-  /**
-   * Name of the instrument currently active.
-   * @type {[string]}
-   */
-  const [instrument, setInstrument] = useState('piano');
 
   /**
    * @type {string[]}
@@ -83,8 +83,8 @@ const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
         [itemId.toString()]: 1,
       });
     } else {
-      setActiveBox((prev) => prev.filter((boxId) => boxId !== itemId));
-      setActiveBoxValues((prev) => omit(prev, [itemId]));
+      setActiveBox(activeBox.filter((boxId) => boxId !== itemId));
+      setActiveBoxValues(omit(activeBoxValues, [itemId]));
     }
   };
 
@@ -127,10 +127,10 @@ const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
       return;
     }
 
-    setActiveBoxValues((prev) => ({
-      ...prev,
+    setActiveBoxValues({
+      ...activeBoxValues,
       [itemId]: resizeValue,
-    }));
+    });
   };
 
   /**
@@ -167,10 +167,12 @@ const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
 
   useEffect(() => {
     if (!firstRender.current) {
-      setActiveBox((prev) => prev.filter((box) => {
+      const newValue = activeBox.filter((box) => {
         const rowIndex = box.split(DELIMITER)[0];
         return instrumentNotes.length > parseInt(rowIndex, 10);
-      }));
+      });
+
+      setActiveBox(newValue);
     }
   }, [instrumentNotes]);
 
@@ -179,15 +181,24 @@ const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
 
   return (
     <Stack padding={4}>
-      <Stack direction="row" alignItems="flex-end" justifyContent="space-between" paddingBottom={2} paddingLeft="54px" paddingRight="27px">
-        <Typography color={color} variant="h5" fontWeight="bold">
-          {trackName}
-        </Typography>
-        <Stack
-          direction="row"
-          alignItems="flex-end"
-          spacing={1}
-        >
+      <Stack
+        direction="row"
+        alignItems="flex-end"
+        justifyContent="space-between"
+        paddingBottom={2}
+      >
+        <Stack direction="row" alignItems="center" spacing="14px">
+          <Link to="/">
+            <IconButton aria-label="back" sx={{ color }}>
+              <ArrowBackIcon />
+            </IconButton>
+
+          </Link>
+          <Typography color={color} variant="h5" fontWeight="bold">
+            {trackName}
+          </Typography>
+        </Stack>
+        <Stack direction="row" alignItems="flex-end" spacing={1}>
           <Button
             onClick={handlePlay}
             sx={{
@@ -308,6 +319,7 @@ const GridItem = ({ trackColor = 'yellow', onPlay, trackName = 'Track 1' }) => {
 };
 
 GridItem.propTypes = {
+  trackNumber: PropTypes.number.isRequired,
   trackColor: PropTypes.string,
   onPlay: PropTypes.func.isRequired,
   trackName: PropTypes.string,

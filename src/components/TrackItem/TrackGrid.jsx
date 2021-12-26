@@ -124,7 +124,7 @@ const TrackGrid = ({ trackNumber }) => {
   return (
     <Box>
       <GridOverlay trackColor={trackColor} playDuration={playDuration} />
-      <GridItem trackColor={trackColor} trackName={'Track ' + trackNumber} onPlay={play} />
+      <GridItem trackColor={trackColor} trackName={'Track ' + trackNumber} trackNumber={trackNumber} onPlay={play} />
     </Box>
   );
 };
