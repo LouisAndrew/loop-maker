@@ -54,7 +54,8 @@ const TrackGrid = ({ trackNumber }) => {
    * Function to play a grid item.
    * @param {string[]} items
    */
-  const play = async (items, instrument) => {
+  const play = async (items, instrument, tempo) => {
+    Tone.Transport.bpm.value = tempo;
     const times = items.map((item) => {
       const [row, col, duration] = item.split(DELIMITER);
       return {

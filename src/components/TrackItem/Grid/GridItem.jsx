@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-bind */
 /* eslint-disable react/no-array-index-key */
 import React, {
   useEffect, useRef, useState, useMemo,
@@ -12,15 +13,14 @@ import {
   MenuItem,
   Typography,
   IconButton,
+  Slider,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Link } from 'react-router-dom';
 import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
-import {
-  DELIMITER, GRID_COLS, INSTRUMENTS, INSTRUMENT_NOTES,
-} from './const';
+import { DELIMITER, INSTRUMENTS, INSTRUMENT_NOTES } from './const';
 import { useTracks } from '../../../hooks/useTracks';
 
 /**
@@ -38,14 +38,23 @@ const GridItem = ({
   } = useTracks();
 
   const activeBox = useMemo(() => activeBoxes[trackNumber], [activeBoxes]);
-  console.log(activeBox);
-  const activeBoxValues = useMemo(() => activeBoxesValues[trackNumber], [activeBoxesValues]);
+  const activeBoxValues = useMemo(
+    () => activeBoxesValues[trackNumber],
+    [activeBoxesValues],
+  );
   const instrument = useMemo(() => instruments[trackNumber], [instruments]);
 
   const { setActiveBox, setActiveBoxValues, setInstrument } = useMemo(
     () => getSetter(trackNumber),
     [trackNumber],
   );
+
+  const [gridLength, setGridLength] = useState(40);
+  const [tempo, setTempo] = useState(120);
+
+  function handleTempo(_, newValue) {
+    setTempo(newValue);
+  }
 
   /**
    * Key of the whole component (Used to rerender the grids).
@@ -117,7 +126,7 @@ const GridItem = ({
 
     const requirements = [
       activeBox.includes(nextPosition),
-      nextPosition >= GRID_COLS,
+      nextPosition > gridLength,
     ];
 
     if (
@@ -140,6 +149,7 @@ const GridItem = ({
     onPlay(
       activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
       instrument,
+      tempo,
     );
   };
 
@@ -157,6 +167,13 @@ const GridItem = ({
    */
   const createArray = (length) => Array.from(Array(length));
 
+  const filterOldBoxes = (box) => {
+    const [rowIndex, colIndex] = box.split(DELIMITER);
+    return (
+      instrumentNotes.length > parseInt(rowIndex, 10) && colIndex < gridLength
+    );
+  };
+
   useEffect(() => {
     if (!firstRender.current) {
       rerender();
@@ -167,42 +184,55 @@ const GridItem = ({
 
   useEffect(() => {
     if (!firstRender.current) {
-      const newValue = activeBox.filter((box) => {
-        const rowIndex = box.split(DELIMITER)[0];
-        return instrumentNotes.length > parseInt(rowIndex, 10);
-      });
+      const newValue = activeBox.filter(filterOldBoxes);
+
+      const newBoxValue = Object.keys(activeBoxValues).filter(filterOldBoxes);
 
       setActiveBox(newValue);
+      setActiveBoxValues(
+        newBoxValue
+          .map((k) => ({ [k]: activeBoxValues[k] }))
+          .reduce((a, b) => ({ ...a, ...b }), {}),
+      );
     }
-  }, [instrumentNotes]);
+  }, [instrumentNotes, gridLength]);
 
   const color = `primary.${trackColor}`;
   const BOX_SIZE = 24;
 
   return (
-    <Stack padding={4}>
+    <Stack>
       <Stack
         direction="row"
         alignItems="flex-end"
-        justifyContent="space-between"
         paddingBottom={2}
+        spacing={5}
       >
-        <Stack direction="row" alignItems="center" spacing="14px">
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="flex-start"
+          spacing={3}
+        >
           <Link to="/">
             <IconButton aria-label="back" sx={{ color }}>
               <ArrowBackIcon />
             </IconButton>
-
           </Link>
-          <Typography color={color} variant="h5" fontWeight="bold">
+          <Typography
+            color={color}
+            variant="h5"
+            fontWeight="bold"
+            sx={{ marginLeft: '14px' }}
+          >
             {trackName}
           </Typography>
-        </Stack>
-        <Stack direction="row" alignItems="flex-end" spacing={1}>
           <Button
             onClick={handlePlay}
             sx={{
               backgroundColor: color,
+              marginLeft: '28px',
+              marginRight: '14px',
               '&:hover': { backgroundColor: color },
             }}
           >
@@ -215,6 +245,48 @@ const GridItem = ({
           >
             Clear
           </Button>
+        </Stack>
+        <Stack direction="row" alignItems="flex-end" spacing={1}>
+          <Box sx={{ width: 120 }}>
+            <InputLabel id="tempo" sx={{ color }}>
+              Tempo:
+              {' '}
+              {tempo}
+            </InputLabel>
+            <Slider
+              size="small"
+              value={tempo}
+              id="tempo"
+              max={180}
+              min={80}
+              onChange={handleTempo}
+            />
+          </Box>
+          <Box sx={{ width: 80 }}>
+            <FormControl size="small" sx={{ minWidth: 80 }}>
+              <InputLabel id="grid-size" sx={{ color }}>
+                Grid length:
+                {gridLength}
+              </InputLabel>
+              <Select
+                labelId="grid-size"
+                id="grid-size-input"
+                value={gridLength}
+                label="Grid length"
+                autoWidth
+                variant="filled"
+                onChange={(e) => setGridLength(parseInt(e.target.value, 10))}
+                sx={{ color }}
+              >
+                {[32, 36, 40, 44, 48, 52].map((len) => (
+                  <MenuItem key={len} value={len}>
+                    {len}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
           <Box sx={{ width: 64 }}>
             <FormControl size="small" sx={{ minWidth: 80 }}>
               <InputLabel id="instrument" sx={{ color }}>
@@ -271,7 +343,7 @@ const GridItem = ({
             >
               {note.replace('s', '#')}
             </Box>
-            {createArray(GRID_COLS).map((s, columnIndex) => {
+            {createArray(gridLength).map((s, columnIndex) => {
               const id = `${rowIndex}${DELIMITER}${columnIndex}`;
               const idValue = activeBoxValues[id];
               return (

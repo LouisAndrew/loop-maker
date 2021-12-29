@@ -7,7 +7,7 @@ const Home = () => (
   <div>
     <h1>Home View</h1>
     {TRACKS.map((trackNumber) => (
-      <Link to={`track-${trackNumber}`}>
+      <Link to={`track-${trackNumber}`} key={`track-${trackNumber}-link`}>
         <Box>
           Go to track
           {' '}
