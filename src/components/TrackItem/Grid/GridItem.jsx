@@ -8,12 +8,15 @@ import {
   Box,
   Button,
   FormControl,
+  FormControlLabel,
   InputLabel,
   Select,
   MenuItem,
   Typography,
   IconButton,
+  Checkbox,
   Slider,
+  FormGroup,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Link } from 'react-router-dom';
@@ -50,6 +53,7 @@ const GridItem = ({
   );
 
   const [gridLength, setGridLength] = useState(40);
+  const [withLoop, setWithLoop] = useState(false);
   const [tempo, setTempo] = useState(120);
 
   function handleTempo(_, newValue) {
@@ -150,6 +154,7 @@ const GridItem = ({
       activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
       instrument,
       tempo,
+      withLoop,
     );
   };
 
@@ -245,6 +250,25 @@ const GridItem = ({
           >
             Clear
           </Button>
+          <FormGroup>
+            <FormControlLabel
+              control={(
+                <Checkbox
+                  onChange={(e) => {
+                    setWithLoop(e.target.checked);
+                  }}
+                  sx={{
+                    color,
+                    '&.Mui-checked': {
+                      color,
+                    },
+                  }}
+                />
+            )}
+              sx={{ color }}
+              label="Loop"
+            />
+          </FormGroup>
         </Stack>
         <Stack direction="row" alignItems="flex-end" spacing={1}>
           <Box sx={{ width: 120 }}>
