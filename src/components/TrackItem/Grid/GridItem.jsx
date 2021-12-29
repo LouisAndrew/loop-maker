@@ -37,7 +37,7 @@ const GridItem = ({
   trackNumber,
 }) => {
   const {
-    getSetter, activeBoxes, activeBoxesValues, instruments,
+    getSetter, activeBoxes, activeBoxesValues, instruments, gridLength, tempo,
   } = useTracks();
 
   const activeBox = useMemo(() => activeBoxes[trackNumber], [activeBoxes]);
@@ -47,14 +47,14 @@ const GridItem = ({
   );
   const instrument = useMemo(() => instruments[trackNumber], [instruments]);
 
-  const { setActiveBox, setActiveBoxValues, setInstrument } = useMemo(
+  const {
+    setActiveBox, setActiveBoxValues, setInstrument, setTempo, setGridLength,
+  } = useMemo(
     () => getSetter(trackNumber),
     [trackNumber],
   );
 
-  const [gridLength, setGridLength] = useState(40);
   const [withLoop, setWithLoop] = useState(false);
-  const [tempo, setTempo] = useState(120);
 
   function handleTempo(_, newValue) {
     setTempo(newValue);
