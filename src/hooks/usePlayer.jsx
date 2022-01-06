@@ -52,21 +52,19 @@ export const PlayerContext = createContext({
   cancelPlayAudio: () => {},
   play: () => {},
   playSingleAudio: () => {},
+  playMultipleAudio: () => {},
 });
 
 const defaultValue = TRACKS.reduce((a, b) => ({ ...a, [b]: null }), {});
 const notReady = TRACKS.reduce((a, b) => ({ ...a, [b]: false }), {});
 
-const MULTIPLE_TRACKS = 'multi';
+const isPlayingMultipleTracks = (id) => typeof id === 'string' && id.includes(DELIMITER);
 const INACTIVE = '';
 
 export const PlayerProvider = ({ children }) => {
   const {
     tempo, gridLength, activeBoxes, activeBoxesValues, instruments,
   } = useTracks();
-
-  const [player, setPlayer] = useState(null);
-  const [noteEntries, setNoteEntries] = useState([]);
 
   const [playerId, setPlayerId] = useState(INACTIVE);
   const [playerGroup, setPlayerGroup] = useState(defaultValue);
@@ -79,16 +77,31 @@ export const PlayerProvider = ({ children }) => {
   const [resetProgress, setResetProgress] = useState(false);
   const [playWithLoop, setPlayWithLoop] = useState(false);
 
-  const stopAudio = (p) => {
+  const onBeforeStop = () => {
     setDisplayOverlay(false);
     setPlayDuration(0);
-    p.dispose();
     Tone.Transport.cancel(playDuration / 1000);
+  };
 
-    if (playerId !== MULTIPLE_TRACKS) {
-      setPlayerGroup((prev) => ({ ...prev, [playerId]: null }));
+  const stopAudio = (p) => {
+    if (playDuration > 0) {
+      onBeforeStop();
+      if (p && !isPlayingMultipleTracks(playerId)) {
+        p.dispose();
+
+        setPlayerGroup((prev) => ({ ...prev, [playerId]: null }));
+        setReadyState((prev) => ({ ...prev, [playerId]: false }));
+      } else {
+        const ids = playerId.split(DELIMITER);
+        ids.forEach((id) => {
+          playerGroup[id].dispose();
+        });
+
+        setPlayerGroup(defaultValue);
+        setReadyState(notReady);
+      }
+
       setPlayerId(INACTIVE);
-      setReadyState((prev) => ({ ...prev, [playerId]: false }));
     }
   };
 
@@ -98,9 +111,7 @@ export const PlayerProvider = ({ children }) => {
       setTimeoutId(-1);
     }
 
-    if (playerId !== MULTIPLE_TRACKS) {
-      stopAudio(playerGroup[playerId]);
-    }
+    stopAudio(!isPlayingMultipleTracks(playerId) ? playerGroup[playerId] : null);
   };
 
   const replayAudio = (entries, p) => {
@@ -125,7 +136,7 @@ export const PlayerProvider = ({ children }) => {
       if (playWithLoop) {
         replayAudio(entries, p);
       } else {
-        stopAudio(p);
+        stopAudio(!isPlayingMultipleTracks(playerId) ? p : null);
       }
     }, playDuration + 500);
 
@@ -221,11 +232,27 @@ export const PlayerProvider = ({ children }) => {
     }));
   };
 
-  useEffect(() => {
-    if (player && noteEntries) {
-      playAudio(noteEntries);
-    }
-  }, [player]);
+  const playMultipleAudio = async (withLoop) => {
+    const tracks = Object.keys(activeBoxesValues).filter(
+      (key) => Object.values(activeBoxesValues[key]).length > 0,
+    );
+    setPlayerId(tracks.length > 0 ? tracks.join(DELIMITER) : INACTIVE);
+
+    const totalTrackDuration = toSeconds(createTimeObject(gridLength)) * 1000;
+    setPlayDuration(totalTrackDuration);
+    setPlayWithLoop(withLoop);
+
+    const samplers = await Promise.all(
+      tracks.map(async (trackId) => ({ [trackId]: await play(trackId) })),
+    );
+
+    setPlayerGroup((prev) => ({
+      ...prev,
+      ...samplers.reduce((a, b) => ({ ...a, ...b }), {}),
+    }));
+  };
+
+  const checkIsReady = (id) => readyState[id] && playerGroup[id];
 
   useEffect(() => {
     if (resetProgress) {
@@ -236,10 +263,16 @@ export const PlayerProvider = ({ children }) => {
   }, [resetProgress]);
 
   useEffect(() => {
-    if (playerId !== MULTIPLE_TRACKS) {
-      if (readyState[playerId] && playerGroup[playerId]) {
-        console.log('Playing audio');
+    if (!isPlayingMultipleTracks(playerId)) {
+      if (checkIsReady(playerId)) {
         playAudio(noteEntryGroup[playerId], playerGroup[playerId]);
+      }
+    } else {
+      const ids = playerId.split(DELIMITER);
+      if (ids.every(checkIsReady)) {
+        ids.forEach((id) => {
+          playAudio(noteEntryGroup[id], playerGroup[id]);
+        });
       }
     }
   }, [readyState, playerGroup]);
@@ -253,6 +286,7 @@ export const PlayerProvider = ({ children }) => {
         play,
         cancelPlayAudio,
         playSingleAudio,
+        playMultipleAudio,
       }}
     >
       {children}
