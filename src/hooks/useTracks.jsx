@@ -12,12 +12,17 @@ const TracksContext = createContext({
   activeBoxes: activeBoxesDefault,
   activeBoxesValues: activeBoxesValuesDefault,
   instruments: instrumentsDefault,
+  tempo: 120,
+  gridLength: 40,
 });
 
 export const TracksProvider = ({ children }) => {
   const [activeBoxes, setActiveBoxes] = useState(activeBoxesDefault);
   const [activeBoxesValues, setActiveBoxesValues] = useState(activeBoxesValuesDefault);
   const [instruments, setInstruments] = useState(instrumentsDefault);
+
+  const [tempo, setTempo] = useState(120);
+  const [gridLength, setGridLength] = useState(40);
 
   const getSetter = useCallback((trackNumber) => {
     if (TRACKS.indexOf(trackNumber) !== -1) {
@@ -43,7 +48,11 @@ export const TracksProvider = ({ children }) => {
       };
 
       return {
-        setActiveBox, setActiveBoxValues, setInstrument,
+        setActiveBox,
+        setActiveBoxValues,
+        setInstrument,
+        setTempo,
+        setGridLength,
       };
     }
 
@@ -56,7 +65,12 @@ export const TracksProvider = ({ children }) => {
 
   return (
     <TracksContext.Provider value={{
-      getSetter, activeBoxes, activeBoxesValues, instruments,
+      getSetter,
+      activeBoxes,
+      activeBoxesValues,
+      instruments,
+      tempo,
+      gridLength,
     }}
     >
       {children}

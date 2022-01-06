@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Box, LinearProgress } from '@mui/material';
+import { Box, LinearProgress, Button } from '@mui/material';
 import PropTypes from 'prop-types';
 
 /**
  * Component that overlays the grid item when it's playing
  */
-const GridOverlay = ({ playDuration, trackColor }) => {
+const GridOverlay = ({
+  playDuration, trackColor, display, onCancel, reset,
+}) => {
   const [progressKey, setProgressKey] = useState(Math.random());
   const [progress, setProgress] = useState(0);
-  const isActive = playDuration !== 0;
+  const isActive = playDuration !== 0 && display;
 
   /**
    * Function to reset the current progress bar
@@ -24,6 +26,10 @@ const GridOverlay = ({ playDuration, trackColor }) => {
    */
   useEffect(() => {
     let timer;
+
+    if (reset) {
+      resetProgress();
+    }
 
     if (playDuration > 0) {
       timer = setInterval(() => {
@@ -42,7 +48,9 @@ const GridOverlay = ({ playDuration, trackColor }) => {
         clearInterval(timer);
       }
     };
-  }, [playDuration]);
+  }, [playDuration, display, reset]);
+
+  const color = `primary.${trackColor}`;
 
   return isActive ? (
     <Box
@@ -64,7 +72,7 @@ const GridOverlay = ({ playDuration, trackColor }) => {
       <Box color="#fff" fontWeight="bold" fontSize="32px">
         PLAYING AUDIO
       </Box>
-      <Box width="20vw" color={`primary.${trackColor}`} sx={{ marginTop: 3 }}>
+      <Box width="20vw" color={color} sx={{ marginTop: 3 }}>
         <LinearProgress
           key={progressKey}
           color="inherit"
@@ -72,6 +80,9 @@ const GridOverlay = ({ playDuration, trackColor }) => {
           value={progress}
         />
       </Box>
+      <Button onClick={onCancel} variant="outlined" sx={{ color, borderColor: color, marginTop: 4 }}>
+        Cancel
+      </Button>
     </Box>
   ) : null;
 };
@@ -79,10 +90,14 @@ const GridOverlay = ({ playDuration, trackColor }) => {
 GridOverlay.propTypes = {
   trackColor: PropTypes.string,
   playDuration: PropTypes.number.isRequired,
+  display: PropTypes.bool.isRequired,
+  onCancel: PropTypes.func,
+  reset: PropTypes.bool.isRequired,
 };
 
 GridOverlay.defaultProps = {
   trackColor: 'yellow',
+  onCancel: () => {},
 };
 
 export default GridOverlay;

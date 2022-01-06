@@ -1,5 +1,5 @@
 /* eslint-disable prefer-template */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 import * as Tone from 'tone';
 import groupBy from 'lodash.groupby';
@@ -13,7 +13,14 @@ import GridItem from './Grid/GridItem';
 import { TRACK_COLORS } from '../../const';
 
 const TrackGrid = ({ trackNumber }) => {
+  const [player, setPlayer] = useState(null);
+  const [noteEntries, setNoteEntries] = useState([]);
   const [playDuration, setPlayDuration] = useState(0);
+  const [displayOverlay, setDisplayOverlay] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(-1);
+  const [resetProgress, setResetProgress] = useState(false);
+  const [playWithLoop, setPlayWithLoop] = useState(false);
+
   const trackColor = TRACK_COLORS[trackNumber];
 
   /**
@@ -50,11 +57,56 @@ const TrackGrid = ({ trackNumber }) => {
   const toSeconds = (duration) => Tone.Transport.toSeconds(duration);
   const getTotalNoteDuration = (start, duration) => (toSeconds(start) + toSeconds(duration)) * 1000;
 
+  const stopAudio = () => {
+    setDisplayOverlay(false);
+    setPlayDuration(0);
+    player.dispose();
+    Tone.Transport.cancel(playDuration / 1000);
+  };
+
+  const cancelPlayAudio = () => {
+    if (timeoutId !== -1) {
+      clearTimeout(timeoutId);
+      setTimeoutId(-1);
+    }
+    stopAudio();
+  };
+
+  const replayAudio = (entries) => {
+    setResetProgress(true);
+    // eslint-disable-next-line no-use-before-define
+    playAudio(entries);
+  };
+
+  const playAudio = (entries) => {
+    setDisplayOverlay(true);
+    entries.forEach(({ note, noteDatas }) => {
+      noteDatas.forEach(({ duration, start }) => {
+        player.triggerAttackRelease(
+          note.replace('s', '#'),
+          duration,
+          '+' + toSeconds(start),
+        );
+      });
+    });
+
+    const timeout = setTimeout(() => {
+      if (playWithLoop) {
+        replayAudio(entries);
+      } else {
+        stopAudio();
+      }
+    }, playDuration + 500);
+
+    setTimeoutId(timeout);
+  };
+
   /**
    * Function to play a grid item.
    * @param {string[]} items
    */
-  const play = async (items, instrument, tempo) => {
+  const play = async (items, instrument, tempo, withLoop) => {
+    setPlayWithLoop(withLoop);
     Tone.Transport.bpm.value = tempo;
     const times = items.map((item) => {
       const [row, col, duration] = item.split(DELIMITER);
@@ -65,7 +117,7 @@ const TrackGrid = ({ trackNumber }) => {
       };
     });
 
-    const noteEntries = Object.entries(groupBy(times, (obj) => obj.row)).map(
+    const entries = Object.entries(groupBy(times, (obj) => obj.row)).map(
       ([row, noteDatas]) => {
         /**
          *
@@ -81,12 +133,12 @@ const TrackGrid = ({ trackNumber }) => {
     );
 
     if (times.length > 0) {
-      const urls = noteEntries.reduce(
+      const urls = entries.reduce(
         (a, b) => ({ ...a, [b.note.replace('s', '#').toString()]: b.note + '.mp3' }),
         {},
       );
 
-      const player = new Tone.Sampler({
+      const sampler = new Tone.Sampler({
         urls,
         baseUrl: 'https://louisandrew.github.io/loop-maker/samples/' + instrument + '/',
         onload: async () => {
@@ -100,31 +152,38 @@ const TrackGrid = ({ trackNumber }) => {
           const totalTrackDuration = noteDurations.sort((a, b) => b - a)[0];
 
           setPlayDuration(totalTrackDuration);
-
-          setTimeout(() => {
-            setPlayDuration(0);
-            player.dispose();
-          }, totalTrackDuration + 500);
-          Tone.Transport.cancel(totalTrackDuration / 1000);
+          setNoteEntries(entries);
+          setPlayer(sampler);
 
           await Tone.start();
-          noteEntries.forEach(({ note, noteDatas }) => {
-            noteDatas.forEach(({ duration, start }) => {
-              player.triggerAttackRelease(
-                note.replace('s', '#'),
-                duration,
-                '+' + toSeconds(start),
-              );
-            });
-          });
         },
       }).toDestination();
     }
   };
 
+  useEffect(() => {
+    if (player && noteEntries) {
+      playAudio(noteEntries);
+    }
+  }, [player]);
+
+  useEffect(() => {
+    if (resetProgress) {
+      setTimeout(() => {
+        setResetProgress(false);
+      }, 100);
+    }
+  }, [resetProgress]);
+
   return (
     <Box>
-      <GridOverlay trackColor={trackColor} playDuration={playDuration} />
+      <GridOverlay
+        onCancel={cancelPlayAudio}
+        trackColor={trackColor}
+        playDuration={playDuration}
+        display={displayOverlay}
+        reset={resetProgress}
+      />
       <GridItem trackColor={trackColor} trackName={'Track ' + trackNumber} trackNumber={trackNumber} onPlay={play} />
     </Box>
   );
