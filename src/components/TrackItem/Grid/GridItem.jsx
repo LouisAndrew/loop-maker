@@ -151,8 +151,7 @@ const GridItem = ({
    */
   const handlePlay = () => {
     onPlay(
-      activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
-      instrument,
+      trackNumber,
       withLoop,
     );
   };

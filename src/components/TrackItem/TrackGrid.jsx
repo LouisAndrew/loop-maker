@@ -9,7 +9,7 @@ import { usePlayer } from '../../hooks/usePlayer';
 
 const TrackGrid = ({ trackNumber }) => {
   const {
-    cancelPlayAudio, playDuration, displayOverlay, resetProgress, play,
+    cancelPlayAudio, playDuration, displayOverlay, resetProgress, playSingleAudio,
   } = usePlayer();
   const trackColor = TRACK_COLORS[trackNumber];
 
@@ -26,7 +26,7 @@ const TrackGrid = ({ trackNumber }) => {
         trackColor={trackColor}
         trackName={`Track ${trackNumber}`}
         trackNumber={trackNumber}
-        onPlay={play}
+        onPlay={playSingleAudio}
       />
     </Box>
   );
