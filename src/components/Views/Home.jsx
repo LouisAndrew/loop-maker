@@ -5,12 +5,13 @@ import { TRACKS } from '../../const';
 import { usePlayer } from '../../hooks/usePlayer';
 
 const Home = () => {
-  const { playMultipleAudio, displayOverlay } = usePlayer();
+  const { playMultipleAudio, displayOverlay, playSingleAudio} = usePlayer();
 
   return (
     <div>
       <h1>Home View</h1>
       {TRACKS.map((trackNumber) => (
+        <div>
         <Link to={`track-${trackNumber}`} key={`track-${trackNumber}-link`}>
           <Box>
             Go to track
@@ -19,6 +20,11 @@ const Home = () => {
           </Box>
 
         </Link>
+
+        <Button onClick={() => playSingleAudio(trackNumber, false)}>
+          play track
+        </Button>
+        </div>
       ))}
 
       {displayOverlay && (
