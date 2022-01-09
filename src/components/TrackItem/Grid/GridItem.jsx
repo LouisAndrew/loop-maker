@@ -23,7 +23,7 @@ import { Link } from 'react-router-dom';
 import omit from 'lodash.omit';
 import { ResizableBox } from 'react-resizable';
 import PropTypes from 'prop-types';
-import { DELIMITER, INSTRUMENTS, INSTRUMENT_NOTES } from './const';
+import { DELIMITER, INSTRUMENTS, INSTRUMENT_NOTES } from '../../../const';
 import { useTracks } from '../../../hooks/useTracks';
 
 /**
@@ -151,9 +151,7 @@ const GridItem = ({
    */
   const handlePlay = () => {
     onPlay(
-      activeBox.map((box) => `${box}${DELIMITER}${activeBoxValues[box] ?? 0}`),
-      instrument,
-      tempo,
+      trackNumber,
       withLoop,
     );
   };

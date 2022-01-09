@@ -6,6 +6,7 @@ import { Colors } from './const';
 import './App.css';
 import Router from './components/Views/Router';
 import { TracksProvider } from './hooks/useTracks';
+import { PlayerProvider } from './hooks/usePlayer';
 
 function App() {
   const theme = createTheme({
@@ -20,7 +21,9 @@ function App() {
     <div className="App">
       <ThemeProvider theme={theme}>
         <TracksProvider>
-          <Router />
+          <PlayerProvider>
+            <Router />
+          </PlayerProvider>
         </TracksProvider>
       </ThemeProvider>
     </div>
