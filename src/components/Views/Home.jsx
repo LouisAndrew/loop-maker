@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom';
 import React from 'react';
 import { TRACKS } from '../../const';
 import { usePlayer } from '../../hooks/usePlayer';
+import GridOverlay from '../TrackItem/Grid/GridOverlay';
 
 const Home = () => {
-  const { playMultipleAudio, displayOverlay } = usePlayer();
+  const {
+    playMultipleAudio,
+    displayOverlay,
+    playDuration,
+    cancelPlayAudio,
+    resetProgress,
+  } = usePlayer();
 
   return (
     <div>
@@ -17,19 +24,18 @@ const Home = () => {
             {' '}
             {trackNumber}
           </Box>
-
         </Link>
       ))}
 
-      {displayOverlay && (
-        <Box>
-          Displaying overlay
-        </Box>
-      )}
+      <GridOverlay
+        playDuration={playDuration}
+        onCancel={cancelPlayAudio}
+        trackColor="white"
+        display={displayOverlay}
+        reset={resetProgress}
+      />
 
-      <Button onClick={playMultipleAudio}>
-        Multiple audio
-      </Button>
+      <Button onClick={() => playMultipleAudio(false)}>Multiple audio</Button>
     </div>
   );
 };
