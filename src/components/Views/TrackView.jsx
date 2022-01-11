@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import TrackGrid from '../TrackItem/TrackGrid';
 
 const TrackView = ({ trackNumber }) => (
-  <Box bgcolor="primary.bg" display="flex" alignItems="center" justifyContent="center" height="100vh">
+  <Box bgcolor="primary.bg" display="flex" alignItems="center" justifyContent="center" minHeight="100vh">
     <TrackGrid trackNumber={trackNumber} />
   </Box>
 );
