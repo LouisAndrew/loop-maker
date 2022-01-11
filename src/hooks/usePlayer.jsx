@@ -73,7 +73,7 @@ export const PlayerProvider = ({ children }) => {
 
   const [playDuration, setPlayDuration] = useState(0);
   const [displayOverlay, setDisplayOverlay] = useState(false);
-  const [timeoutId, setTimeoutId] = useState(-1);
+  const [timeoutId, setTimeoutId] = useState([]);
   const [resetProgress, setResetProgress] = useState(false);
   const [playWithLoop, setPlayWithLoop] = useState(false);
 
@@ -106,9 +106,11 @@ export const PlayerProvider = ({ children }) => {
   };
 
   const cancelPlayAudio = () => {
-    if (timeoutId !== -1) {
-      clearTimeout(timeoutId);
-      setTimeoutId(-1);
+    if (timeoutId.length > 0) {
+      timeoutId.forEach((tId) => {
+        clearTimeout(tId);
+      });
+      setTimeoutId([]);
     }
 
     stopAudio(!isPlayingMultipleTracks(playerId) ? playerGroup[playerId] : null);
@@ -140,7 +142,7 @@ export const PlayerProvider = ({ children }) => {
       }
     }, playDuration + 500);
 
-    setTimeoutId(timeout);
+    setTimeoutId((prev) => [...prev, timeout]);
   };
 
   const getNotes = (id) => activeBoxes[id].map(
