@@ -192,38 +192,50 @@ const GridItem = ({
   }, [instrumentNotes, gridLength]);
 
   const color = `primary.${trackColor}`;
+  const borderRadius = mini ? 0 : 0.5;
   const BOX_SIZE = mini ? 10 : 24;
 
   return (
-    <Stack>
+    <Stack className={mini ? 'grid-item--mini' : ''}>
       <Stack
         direction="row"
         alignItems="flex-end"
         paddingBottom={2}
         spacing={5}
       >
-        <GridControl
-          handlePlay={handlePlay}
-          color={color}
-          handleTempo={handleTempo}
-          setGridLength={setGridLength}
-          setInstrument={setInstrument}
-          {...(mini ? {} : {
-            trackName, handleClear, tempo, gridLength, instrument, setWithLoop,
-          })}
-        />
+        {
+          !mini
+           && (
+           <GridControl
+             {...{
+               handlePlay,
+               color,
+               handleTempo,
+               setGridLength,
+               setInstrument,
+               trackName,
+               handleClear,
+               tempo,
+               gridLength,
+               instrument,
+               setWithLoop,
+             }}
+           />
+           )
+        }
       </Stack>
       <Stack spacing={mini ? 0 : 0.25} key={key} position="relative">
         {mini && (
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 12,
-        }}
-        />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 12,
+            }}
+          />
         )}
         {instrumentNotes.map((note, rowIndex) => (
           <Stack
@@ -233,10 +245,10 @@ const GridItem = ({
             alignItems="center"
             key={`row-${rowIndex}`}
             sx={{
+              borderRadius,
               borderWidth: 1,
               borderStyle: 'solid',
               borderColor: 'transparent',
-              borderRadius: 0.5,
               '&:hover': {
                 borderColor: color,
                 transition: '200ms',
@@ -280,7 +292,6 @@ const GridItem = ({
                         height={BOX_SIZE}
                         width={idValue * BOX_SIZE + (idValue - 1) * 2}
                         axis="x"
-                        handleSize={[10, 10]}
                         onResizeStop={(event, { size }) => {
                           handleBoxResize(size.width, id);
                         }}

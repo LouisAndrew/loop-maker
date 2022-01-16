@@ -8,3 +8,8 @@
   height: 30px !important;
   width: 10px !important;
 }
+
+.grid-item--mini .react-resizable-handle {
+  height: 0px !important;
+  width: 0px !important;
+}
