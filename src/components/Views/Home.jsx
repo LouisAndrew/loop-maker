@@ -3,11 +3,12 @@ import {
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
-import { TRACKS } from '../../const';
+import { TRACKS, TRACK_COLORS } from '../../const';
 import { usePlayer } from '../../hooks/usePlayer';
 import GridOverlay from '../TrackItem/Grid/GridOverlay';
 import GridControl from '../TrackItem/Grid/GridControl';
 import { useTracks } from '../../hooks/useTracks';
+import GridItem from '../TrackItem/Grid/GridItem';
 
 const Home = () => {
   const {
@@ -51,6 +52,14 @@ const Home = () => {
               {trackNumber}
             </Box>
           </Link>
+
+          <GridItem
+            trackColor={TRACK_COLORS[trackNumber]}
+            trackNumber={trackNumber}
+            trackName={`Track ${trackNumber}`}
+            onPlay={() => {}}
+            mini
+          />
 
           <Button onClick={() => playSingleAudio(trackNumber, false)}>
             play track
