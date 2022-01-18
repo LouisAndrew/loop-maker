@@ -1,17 +1,16 @@
 import {
-  Box, Button, Stack,
+  Box, Button, Stack
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 
+import { TRACKS, TRACK_COLORS, Colors } from '../../const';
 import HomeControl from '../HomeControl';
 
-import { TRACKS, TRACK_COLORS } from '../../const';
 import { usePlayer } from '../../hooks/usePlayer';
 import GridOverlay from '../TrackItem/Grid/GridOverlay';
 import GridControl from '../TrackItem/Grid/GridControl';
 import GridItem from '../TrackItem/Grid/GridItem';
-
 const Home = () => {
   const {
     playMultipleAudio,
@@ -22,27 +21,38 @@ const Home = () => {
     playSingleAudio,
   } = usePlayer();
 
-  const [withLoop, setWithLoop] = useState(false);
+  const textColor='#cecece'
 
+  const [withLoop, setWithLoop] = useState(false);
+  document.body.style = ('background: '+Colors['bg']);
   return (
     <div>
-      <h1>Home View</h1>
+      <h1 style={{color:textColor}}>Home View</h1>
       <Stack>
         <GridControl
           handlePlay={() => playMultipleAudio(withLoop)}
           setWithLoop={setWithLoop}
+          color='#dddddd'
         />
         <HomeControl />
       </Stack>
       {TRACKS.map((trackNumber) => (
         <div>
-          <Link to={`track-${trackNumber}`} key={`track-${trackNumber}-link`}>
             <Box>
-              Go to track
-              {' '}
-              {trackNumber}
+              <Button onClick={() => playSingleAudio(trackNumber, false)} sx={{
+                backgroundColor: Colors[TRACK_COLORS[trackNumber]],
+                marginLeft: '28px',
+                marginRight: '28px',
+                '&:hover': { backgroundColor: 'yellow' },
+              }}>
+                PLAY
+              </Button>
+              <Link to={`track-${trackNumber}`} key={`track-${trackNumber}-link`} style={{color:textColor}}>
+                Go to track
+                {' '}
+                {trackNumber}
+              </Link>
             </Box>
-          </Link>
 
           <GridItem
             trackColor={TRACK_COLORS[trackNumber]}
@@ -52,9 +62,6 @@ const Home = () => {
             mini
           />
 
-          <Button onClick={() => playSingleAudio(trackNumber, false)}>
-            play track
-          </Button>
         </div>
       ))}
 
