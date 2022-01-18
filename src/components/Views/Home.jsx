@@ -1,13 +1,15 @@
 import {
-  Box, Button, Stack, Typography,
+  Box, Button, Stack,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
+
+import HomeControl from '../HomeControl';
+
 import { TRACKS, TRACK_COLORS } from '../../const';
 import { usePlayer } from '../../hooks/usePlayer';
 import GridOverlay from '../TrackItem/Grid/GridOverlay';
 import GridControl from '../TrackItem/Grid/GridControl';
-import { useTracks } from '../../hooks/useTracks';
 import GridItem from '../TrackItem/Grid/GridItem';
 
 const Home = () => {
@@ -20,8 +22,6 @@ const Home = () => {
     playSingleAudio,
   } = usePlayer();
 
-  const { tempo, gridLength } = useTracks();
-
   const [withLoop, setWithLoop] = useState(false);
 
   return (
@@ -32,16 +32,7 @@ const Home = () => {
           handlePlay={() => playMultipleAudio(withLoop)}
           setWithLoop={setWithLoop}
         />
-        <Typography>
-          Tempo:
-          {' '}
-          {tempo}
-        </Typography>
-        <Typography>
-          Grid length:
-          {' '}
-          {gridLength}
-        </Typography>
+        <HomeControl />
       </Stack>
       {TRACKS.map((trackNumber) => (
         <div>
