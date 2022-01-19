@@ -1,5 +1,5 @@
 import {
-  Box, Button, Stack
+  Box, Button, Stack, Typography,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
@@ -11,6 +11,7 @@ import { usePlayer } from '../../hooks/usePlayer';
 import GridOverlay from '../TrackItem/Grid/GridOverlay';
 import GridControl from '../TrackItem/Grid/GridControl';
 import GridItem from '../TrackItem/Grid/GridItem';
+
 const Home = () => {
   const {
     playMultipleAudio,
@@ -21,49 +22,61 @@ const Home = () => {
     playSingleAudio,
   } = usePlayer();
 
-  const textColor='#cecece'
+  const textColor = '#cecece';
 
   const [withLoop, setWithLoop] = useState(false);
-  document.body.style = ('background: '+Colors['bg']);
+  document.body.style = (`background: ${Colors.bg}`);
   return (
-    <div>
-      <h1 style={{color:textColor}}>Home View</h1>
-      <Stack>
-        <GridControl
-          handlePlay={() => playMultipleAudio(withLoop)}
-          setWithLoop={setWithLoop}
-          color='#dddddd'
-        />
-        <HomeControl />
+    <Stack padding={4}>
+      <Stack paddingBottom={4}>
+        <Typography variant="h3" color="#fff" sx={{ paddingLeft: 3 }}>
+          Loop Maker
+        </Typography>
+        <Stack direction="row" py={2}>
+          <GridControl
+            handlePlay={() => playMultipleAudio(withLoop)}
+            setWithLoop={setWithLoop}
+            color="#dddddd"
+          />
+          <HomeControl />
+        </Stack>
       </Stack>
-      {TRACKS.map((trackNumber) => (
-        <div>
+
+      <Stack spacing={3}>
+        {TRACKS.map((trackNumber) => (
+          <div>
             <Box>
-              <Button onClick={() => playSingleAudio(trackNumber, false)} sx={{
-                backgroundColor: Colors[TRACK_COLORS[trackNumber]],
-                marginLeft: '28px',
-                marginRight: '28px',
-                '&:hover': { backgroundColor: 'yellow' },
-              }}>
-                PLAY
+              <Button
+                onClick={() => playSingleAudio(trackNumber, false)}
+                sx={{
+                  backgroundColor: Colors[TRACK_COLORS[trackNumber]],
+                  marginLeft: '28px',
+                  marginRight: '28px',
+                  '&:hover': { backgroundColor: 'yellow' },
+                }}
+              >
+                PLAY Track
+                {' '}
+                {trackNumber}
               </Button>
-              <Link to={`track-${trackNumber}`} key={`track-${trackNumber}-link`} style={{color:textColor}}>
+              <Link to={`track-${trackNumber}`} key={`track-${trackNumber}-link`} style={{ color: textColor }}>
                 Go to track
                 {' '}
                 {trackNumber}
               </Link>
             </Box>
 
-          <GridItem
-            trackColor={TRACK_COLORS[trackNumber]}
-            trackNumber={trackNumber}
-            trackName={`Track ${trackNumber}`}
-            onPlay={() => {}}
-            mini
-          />
+            <GridItem
+              trackColor={TRACK_COLORS[trackNumber]}
+              trackNumber={trackNumber}
+              trackName={`Track ${trackNumber}`}
+              onPlay={() => {}}
+              mini
+            />
 
-        </div>
-      ))}
+          </div>
+        ))}
+      </Stack>
 
       <GridOverlay
         playDuration={playDuration}
@@ -72,7 +85,7 @@ const Home = () => {
         display={displayOverlay}
         reset={resetProgress}
       />
-    </div>
+    </Stack>
   );
 };
 
