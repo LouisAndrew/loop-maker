@@ -34,14 +34,14 @@
 
 ### Multiple Instruments
 
-![Instruments](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/GridSettings.png)
+![Instruments](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/Instruments.png)
 
 <!-- TODO: Add description about multiple instruments -->
 
 ### Multiple Tracks
 
 This is the core feature of the whole application, that multiple tracks / grids can be played simultaneously, even when they have a different instrument. What's important for this feature is that we set the grid length and the BPM to be a global variable, so that there's no track that would stop earlier in comparison to the others.
-![Multiple Tracks](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/MultiTracks.png)
+![Multiple Tracks](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/MutliTracks.png)
 
 ### Technical challenge
 
