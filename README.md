@@ -25,18 +25,25 @@
 ![Grid Item](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/GridItem_filled.png)
 
 <!-- TODO: Add description here -->
+Can be accessed by clicking on the Links titled "go to track X". Place and remove Notes by clicking them. Changes Color when active. 
 
 ### Grid Settings
 
 ![Grid Settings](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/GridSettings.png)
 
 <!-- TODO: Add description (Looping, BPM, Grid Length) -->
+Various Setting defining some Metadata about the Audio being played. Can be found on top of each tracks grid aswell as the Main Menu.
+Is universal (shared between tracks).
+The checkbox next to "Loop" can be pressed to toggle if a generated Sequence should be played once or looped indefinitely.
+The slider manipulates the tempo of the Song (displayed in BPM) above.
+Grid length defines the amount of beats that a bar should be subdivided into. Can be switched in steps of 4 between 32 and 52.
 
 ### Multiple Instruments
 
 ![Instruments](https://raw.githubusercontent.com/LouisAndrew/loop-maker/main/docs/images/Instruments.png)
 
 <!-- TODO: Add description about multiple instruments -->
+Can be found next to the Grid Settings of the unique tracks. Changes the Instrument that is being simulated by the Track.
 
 ### Multiple Tracks
 
